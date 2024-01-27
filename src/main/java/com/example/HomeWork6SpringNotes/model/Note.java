@@ -17,6 +17,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class Note {
 
+    /**
+     * Поля сущности "заметка"
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
