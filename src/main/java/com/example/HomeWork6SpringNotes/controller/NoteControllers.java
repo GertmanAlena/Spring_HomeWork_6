@@ -3,10 +3,13 @@ package com.example.HomeWork6SpringNotes.controller;
 import com.example.HomeWork6SpringNotes.model.Note;
 import com.example.HomeWork6SpringNotes.repository.NoteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,9 +24,9 @@ public class NoteControllers {
      * @return
      */
     @PostMapping
-    public Note addNone(@RequestBody Note note){
+    public ResponseEntity<Note> addNone(@RequestBody Note note){
         note.setDate(LocalDate.now());
-        return noteRepository.save(note);
+        return new ResponseEntity<>(noteRepository.save(note), HttpStatus.CREATED);
     }
 
     /**
@@ -31,8 +34,8 @@ public class NoteControllers {
      * @return
      */
     @GetMapping
-    public List<Note> getAllNotes() {
-        return noteRepository.findAll();
+    public ResponseEntity<List<Note>> getAllNotes() {
+        return new ResponseEntity<>(noteRepository.findAll(), HttpStatus.OK);
     }
 
     /**
@@ -41,8 +44,8 @@ public class NoteControllers {
      * @return
      */
     @GetMapping("{id}")
-    public Note getNoteById(@PathVariable("id") Long id){
-        return noteRepository.findById(id).orElse(null);
+    public ResponseEntity<Note> getNoteById(@PathVariable("id") Long id){
+        return new ResponseEntity<>(noteRepository.findById(id).orElse(null), HttpStatus.OK);
     }
 
     /**
@@ -52,20 +55,19 @@ public class NoteControllers {
      * @return
      */
     @PutMapping("/{id}")
-    public Note updateNote(@PathVariable Long id, @RequestBody Note note){
-        Note noteUpdate = noteRepository.findById(id).orElse(null);
-        if(note.getContent() == null){
-            noteUpdate.setTitle(note.getTitle());
-            noteUpdate.setContent(noteUpdate.getContent());
-            noteUpdate.setDate(LocalDate.now());
-        }
-        if(note.getTitle() == null){
-            noteUpdate.setTitle(noteUpdate.getTitle());
-            noteUpdate.setContent(note.getContent());
-            noteUpdate.setDate(LocalDate.now());
-        }
-        return noteRepository.save(noteUpdate);
+    public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note note){
+        Optional<Note> noteOptional = noteRepository.findById(id);
+        Note n = noteOptional.get();
 
+        if (noteOptional.isPresent()) {
+            n.setTitle(note.getTitle());
+            n.setContent(note.getContent());
+            n.setDate(LocalDate.now());
+            noteRepository.save(n);
+            return ResponseEntity.ok(note);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -73,8 +75,9 @@ public class NoteControllers {
      * @param id
      */
     @DeleteMapping("/{id}")
-    public void deleteNoteById(@PathVariable("id") Long id){
+    public ResponseEntity<Void> deleteNoteById(@PathVariable("id") Long id){
         noteRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
 }
